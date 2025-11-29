@@ -1,4 +1,4 @@
-from assets.datasets.example_load import *
+from example_load import *
 from scipy import signal
 
 window_start = 5
