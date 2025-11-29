@@ -55,20 +55,20 @@ ppg_signal_1 = ppg_chest_1[:, channel_idx]
 N = len(ppg_signal_1)
 time_domain_1 = np.linspace(0, (N-1)*t, N)
 
-plt.subplot(1,2,1)
-plt.plot(time_domain_1, ppg_signal_1)
-plt.xlabel("time [s]")
-plt.ylabel("Some value ig [au]")
-plt.title("1st patient, 1st channel")
+# plt.subplot(1,2,1)
+# plt.plot(time_domain_1, ppg_signal_1)
+# plt.xlabel("time [s]")
+# plt.ylabel("Some value ig [au]")
+# plt.title("1st patient, 1st channel")
 
 ppg_signal_2 = ppg_head_1[:, channel_idx]
 N = len(ppg_signal_2)
 time_domain_2 = np.linspace(0, (N-1)*t, N)
 
-plt.subplot(1,2,2)
-plt.plot(time_domain_2, ppg_signal_2)
-plt.xlabel("time [s]")
-plt.ylabel("Some value ig [au]")
-plt.title("1st patient, 2nd channel")
+# plt.subplot(1,2,2)
+# plt.plot(time_domain_2, ppg_signal_2)
+# plt.xlabel("time [s]")
+# plt.ylabel("Some value ig [au]")
+# plt.title("1st patient, 2nd channel")
 
-plt.show()
+# plt.show()
