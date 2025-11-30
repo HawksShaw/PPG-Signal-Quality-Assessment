@@ -1,6 +1,6 @@
 from scipy.signal import butter, filtfilt
 
-def bandpass(signal, fs, lowcut=0.7, highcut=3.75, order=3):
+def bandpass(signal, fs, lowcut=0.5, highcut=3.75, order=3):
     nyquist = 0.5*fs
     low = lowcut / nyquist
     high = highcut / nyquist

@@ -1,4 +1,4 @@
-from example_load import *
+from wildppg_load import *
 from scipy import signal
 
 window_start = 5
@@ -15,13 +15,13 @@ filter_order = 3
 b, a = signal.butter(filter_order, [high_cutoff, low_cutoff], fs = fs, btype='band')
 window_filtered = signal.filtfilt(b, a, window)
 
-plt.subplot(2,1,1)
-plt.plot(time_window, window)
-plt.title("No filter")
+# plt.subplot(2,1,1)
+# plt.plot(time_window, window)
+# plt.title("No filter")
 
-plt.subplot(2,1,2)
-plt.plot(time_window, window_filtered)
-plt.title("Butterworth 0.5-3.7Hz")
+# plt.subplot(2,1,2)
+# plt.plot(time_window, window_filtered)
+# plt.title("Butterworth 0.5-3.7Hz")
 
-plt.show()
+# plt.show()
 

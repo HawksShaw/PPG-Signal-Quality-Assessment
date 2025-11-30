@@ -1,4 +1,4 @@
-from example_load import *
+from wildppg_load import *
 from find_peaks import *
 import matplotlib.pyplot as plt
 

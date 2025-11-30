@@ -1,8 +1,7 @@
 from scipy.signal import find_peaks
-from signal_filtering import *
 from butterworth import bandpass
 
-def beat_detection(filtered_signal, fs, min_distance = 0.33, min_prominence = None):
+def beat_detection(filtered_signal, fs, min_distance = 1.0, min_prominence = None):
     distance = int(min_distance*fs)
     if min_prominence is None:
         min_prominence = 0.1 * filtered_signal.std()
@@ -22,7 +21,7 @@ def pulse_detection_rate(signal, fs, lowcut = 0.5, highcut = 3.7, order = 3, min
     min_beats = expected_hr_range[0] * duration_s / 60.0
     max_beats = expected_hr_range[1] * duration_s / 60.0
 
-    # --- Define range ---
+    # --- Define sqi values ---
     if n_beats < min_beats or n_beats > max_beats:
         sqi = 0.0
     else:
