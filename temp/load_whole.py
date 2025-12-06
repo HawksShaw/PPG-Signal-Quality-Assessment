@@ -56,11 +56,17 @@ for key in data:
 
 
 # ---- Plot raw signal ----
+channel_idx = 0
 fs = 128
 t = 1/fs
-ppg_signal_1 = []
-for channel in (0, 199):
-    ppg_signal_1.append(ppg_head_1[:, channel])
+print(ppg_head_1.shape)
+ppg_signal_1 = ppg_head_1[:, channel_idx]
+
+channel_idx = 1
+ppg_signal_1 = np.concatenate((ppg_signal_1, ppg_head_1[:, channel_idx]))
+
+# for channel in ppg_head_1.shape:
+#     ppg_signal_1.append(ppg_head )
 
 N = len(ppg_signal_1)
 time_domain_1 = np.linspace(0, (N-1)*t, N)
