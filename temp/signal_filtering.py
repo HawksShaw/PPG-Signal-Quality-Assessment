@@ -1,4 +1,4 @@
-from wildppg_load import *
+from plot_raw import *
 from scipy import signal
 
 window_start = 5
