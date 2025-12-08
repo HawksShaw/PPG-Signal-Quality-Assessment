@@ -1,4 +1,6 @@
 from load_wildppg import *
+import numpy as np
+import matplotlib.pyplot as plt
 
 # --- Each variable below is a list of length 16 - change index from 0 to 15 to check each subject ---
 
@@ -27,6 +29,7 @@ data_imu_ankle = data['data_imu_ankle'][subject_number]        # IMU ankle senso
 
 # --- Accessing a subject's signal --- 
 
+bpm        = data_bpm_values[0]
 ppg_head   = data_ppg_head[0]
 ppg_wrist  = data_ppg_wrist[0]
 ppg_chest  = data_ppg_chest[0]
@@ -36,7 +39,6 @@ altitude   = data_altitude[0]
 temp       = data_temp_wrist[0]
 imu_chest  = data_imu_chest[0]
 
-
 # ---- Show summary ----
 
 print(f'Loaded WildPPG.mat: {len(data_ppg_ankle)} subjects')
@@ -44,3 +46,19 @@ print('Variables loaded:')
 for key in data:
     if not key.startswith('__'):
         print(f' - {key}: shape {data[key].shape}')
+
+# --- define sampling rate, time domain and number of samples ---
+# the signal was flattened to access all channels in a single-dimension axis
+
+fs = 128
+t = 1/fs
+signal_bpm = bpm
+signal = ppg_head.flatten()
+n_samples_bpm = len(bpm)
+n_samples = len(signal)
+time = np.linspace(0, (n_samples-1)*t, n_samples)
+time_bpm = np.linspace(0, (n_samples_bpm-1)*t, n_samples_bpm)
+
+plt.figure()
+plt.plot(time_bpm, signal_bpm)
+plt.show()
