@@ -1,6 +1,5 @@
 from load_wildppg import *
 import numpy as np
-import matplotlib.pyplot as plt
 
 # --- Each variable below is a list of length 16 - change index from 0 to 15 to check each subject ---
 
@@ -56,9 +55,6 @@ signal_bpm = bpm
 signal = ppg_head.flatten()
 n_samples_bpm = len(bpm)
 n_samples = len(signal)
+print(f"time of the signal: {n_samples*t/60} minutes")
 time = np.linspace(0, (n_samples-1)*t, n_samples)
 time_bpm = np.linspace(0, (n_samples_bpm-1)*t, n_samples_bpm)
-
-plt.figure()
-plt.plot(time_bpm, signal_bpm)
-plt.show()

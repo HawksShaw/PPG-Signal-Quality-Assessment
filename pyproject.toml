@@ -7,5 +7,6 @@ requires-python = ">=3.14"
 dependencies = [
     "git-filter-repo>=2.47.0",
     "matplotlib>=3.10.7",
+    "pandas>=2.3.3",
     "scipy>=1.16.3",
 ]
