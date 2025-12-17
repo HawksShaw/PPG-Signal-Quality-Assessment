@@ -1,9 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from window import signal_cutoff
 
-data = pd.read_csv('./data/PPG_Dataset.csv')
+data = pd.read_csv('./data/raw/PPG_Dataset.csv')
 
 y = data.iloc[:, 0]
 x = np.linspace(0, 1, len(y))

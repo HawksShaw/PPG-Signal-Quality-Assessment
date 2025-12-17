@@ -2,7 +2,7 @@ from scipy.io import loadmat
 import matplotlib.pyplot as plt
 import numpy as np
 
-file = loadmat('data\\part_1.mat', struct_as_record = False, squeeze_me = True)
+file = loadmat('data/raw/part_1.mat', struct_as_record = False, squeeze_me = True)
 
 ppg_1 = file['p'][0][0]
 abp_1 = file['p'][0][1]
