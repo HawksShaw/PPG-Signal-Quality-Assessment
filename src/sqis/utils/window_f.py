@@ -1,6 +1,6 @@
 import numpy as np
 
-def signal_cutoff(signal, window_start, window_length, fs):
+def signal_window(signal, window_start, window_length, fs):
 
     window_samples = fs*window_length
     window_signal = signal[:window_samples]
