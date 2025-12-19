@@ -3,6 +3,7 @@ from .diastolic import diastolic_peaks
 from .dicrotic import dicrotic_notches
 from .onsets import pulse_onsets
 import matplotlib.pyplot as plt
+import numpy as np
 
 def fiducials(signal, fs, prominence=None, height=None, pulse_fraction_percentage=0.3):
 
@@ -14,7 +15,7 @@ def fiducials(signal, fs, prominence=None, height=None, pulse_fraction_percentag
 
     signal_onsets = pulse_onsets(signal=signal, fs=fs, systolic_index=signal_systoles, pulse_fraction_percentage=pulse_fraction_percentage)
 
-    return signal_systoles, signal_diastoles, signal_notches, signal_onsets
+    return signal_systoles, signal_props, signal_diastoles, signal_notches, signal_onsets
 
 def plot_fiducials(signal, systoles, diastoles, notches, onsets, time, legend=False):
 
