@@ -2,7 +2,7 @@ import numpy as np
 from scipy import signal, stats
 
 class SQIcalc:
-    def __init__(self, sampling_rate=125):
+    def __init__(self, sampling_rate=128):
         self.fs = sampling_rate
 
     def get_all_sqi(self, ppg_window, peaks):
