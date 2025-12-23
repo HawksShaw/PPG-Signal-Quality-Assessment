@@ -8,7 +8,7 @@ class IMUDetector:
     def check_motion(self, acc_x, acc_y, acc_z):
         
         #1. Get magnitude
-        magnitute = np.sqrt(acc_x**2 + acc_y**2, acc_z**2)
+        magnitude = np.sqrt(acc_x**2 + acc_y**2 + acc_z**2)
 
         #2. Get dynamic component
         motion_std = np.std(magnitude)

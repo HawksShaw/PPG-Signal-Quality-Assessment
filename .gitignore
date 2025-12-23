@@ -5,10 +5,9 @@ build/
 dist/
 wheels/
 *.egg-info
-WildPPG.mat
-assets/datasets/WildPPG.mat
-WildPPG_part_an0.mat
 data/
+notebooks/archive
+scripts/archive
 
 # Virtual environments
 .venv
