@@ -5,28 +5,34 @@ class getFiducials:
     def __init__(self, sampling_rate=128):
         self.fs = sampling_rate
         self.peak_height = 0.5
+        self.prominence = 0.001
         self.min_distance = int(0.27*self.fs)
 
     def extract_fiducials(self, ppg_window):
-        current_threshold = 0.6*peak_height
+        height_threshold = 0.6*self.peak_height
+        prominence_threshold = 0.3*self.prominence
 
-        peaks, props = signal.find_peaks(ppg_window, distance=self.min_distance, height=current_threshold)
+        peaks, props = signal.find_peaks(ppg_window, distance=self.min_distance, height=height_threshold, prominence=prominence_threshold)
 
-        if len(props['peak heights']) > 0:
+        if len(props['peak_heights']) > 0:
             avg_height = np.mean(props['peak_heights'])
             self.peak_height = 0.9*self.peak_height + 0.1*avg_height
 
-            notches, diastolic_peaks = self.find_diastoles(ppg_window, peaks)
-            pulse_onsets = self.find_onsets(ppg_window, peaks)
+            avg_prominence = np.mean(props['prominences'])
+            self.prominence = 0.9*self.prominence + 0.1*avg_prominence
+
+        notches, diastolic_peaks = self.find_diastoles(ppg_window, peaks)
+        pulse_onsets = self.find_onsets(ppg_window, peaks)
 
 
-            return {
-                "systolic_peaks" : peaks,
-                "diastolic_peaks" : diastolic_peaks,
-                "notches" : notches,
-                "pulse_onsets" : pulse_onsets,
-                "mean_height" : self.peak_height
-            }
+        return {
+            "systolic_peaks" : peaks,
+            "diastolic_peaks" : diastolic_peaks,
+            "notches" : np.array(notches),
+            "pulse_onsets" : pulse_onsets,
+            "running_height" : self.peak_height,
+            "running_prominence": self.prominence
+        }
 
     def find_diastoles(self, ppg_window, peaks):
         notches = []
@@ -34,14 +40,14 @@ class getFiducials:
 
         for i, peak in enumerate(peaks):
             search_start = peak+int(0.05*self.fs)
-            search_end   = peak+int(0.40*self.fs)
+            search_end   = peak+int(0.55*self.fs)
 
-            if search_start >= len(window):
+            if search_start >= len(ppg_window):
                 notches.append(None)
                 diastoles.append(None)
                 continue
             
-            search_end = np.min(search_end, len(window))
+            search_end = min(search_end, len(ppg_window))
             search_segment = ppg_window[search_start : search_end]
 
             if len(search_segment) < 3:
@@ -54,7 +60,7 @@ class getFiducials:
 
             if len(local_minima_idx) > 0 and len(local_maxima_idx) > 0:
                 notch_idx = search_start + local_minima_idx[0]
-                diastole_idx_valid = [maximum for x in local_maxima_idx if x > local_minima_idx[0]]
+                diastole_idx_valid = [x for x in local_maxima_idx if x > local_minima_idx[0]]
 
                 if diastole_idx_valid:
                     diastole_idx = search_start + diastole_idx_valid[0]
