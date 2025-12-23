@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List
 
-def SignalStatus(Enum):
+class SignalStatus(Enum):
     GOOD       = "GOOD"
     ACCEPTABLE = "ACCEPTABLE"
     BAD        = "BAD"
@@ -36,15 +36,15 @@ class Decision:
         #Hardgating
         if motion_flagged:
             return QualityReport(
-                status = SignalStatus.ABSTAIN,
-                confidence_score = 0.0,
+                status = SignalStatus.BAD,
+                confidence = 0.0,
                 reasons = ["Critical Motion Exceeded"],
                 metrics = sqi_metrics
             )
 
         if num_peaks < self.thresholds["min_peaks"]:
             return QualityReport(
-                status = SignalStatus.ABSTAIN,
+                status = SignalStatus.BAD,
                 confidence = 0.0,
                 reasons = [f"Insufficient number of peaks (Found {num_peaks})"],
                 metrics = sqi_metrics
@@ -52,7 +52,7 @@ class Decision:
 
         if sqi_metrics.get("hjorth_activity", 0) < self.thresholds["activity_min"]:
             return QualityReport(
-                status = SignalStatus.ABSTAIN,
+                status = SignalStatus.BAD,
                 confidence = 0.0,
                 reasons = [f"Sensor disconnected or flat"],
                 metrics = sqi_metrics
@@ -81,7 +81,13 @@ class Decision:
             final_verdict = SignalStatus.GOOD
         elif len(reasons) <= 1 and final_score > 0.5:
             final_verdict = SignalStatus.ACCEPTABLE
-        elif len(reasons) > 1 and final_score <= 0.5:
+        else:
             final_verdict = SignalStatus.BAD
-
+        
+        return QualityReport(
+            status=final_verdict,
+            confidence=round(total_score, 2),
+            reasons=reasons,
+            metrics=sqi_metrics
+        )
         
