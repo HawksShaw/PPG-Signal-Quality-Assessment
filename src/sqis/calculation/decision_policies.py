@@ -59,6 +59,8 @@ class Decision:
             )
         
         #Softgating
+        reasons = []
+
         template_corr = sqi_metrics.get("template_correlation", 0)
         if template_corr < self.thresholds["template_corr_min"]:
             reasons.append(f"Poor Morphology (Corr: {template_corr:.2f})")
@@ -79,7 +81,7 @@ class Decision:
 
         if len(reasons) == 0:
             final_verdict = SignalStatus.GOOD
-        elif len(reasons) <= 1 and final_score > 0.5:
+        elif len(reasons) <= 1 and total_score > 0.5:
             final_verdict = SignalStatus.ACCEPTABLE
         else:
             final_verdict = SignalStatus.BAD
