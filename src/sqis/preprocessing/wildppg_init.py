@@ -12,7 +12,7 @@ def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
     return sosfiltfilt(sos, signal)
 
 def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, preprocess=True):
-    files_dir = os.path.join(data_dir, 'WildPPG_Part_an*.mat')
+    files_dir = os.path.join(data_dir, 'WildPPG_Part_*.mat')
     files = sorted(glob.glob(files_dir))
 
     if not os.path.isdir(data_dir):
@@ -31,13 +31,12 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
             continue
 
         for sensor_location in sensors:
-            if not hasattr(mat_file, sensor_location):
-                print(f"No attribute {sensor_location} for subject {subject_id}")
+            if sensor_location not in mat_file:
+                print(f"No attribute '{sensor_location}' for subject {subject_id}")
                 continue
-            sensor_data = getattr(mat_file, sensor_location)
+
+            sensor_data = mat_file[sensor_location]
             ppg_fs = sensor_data.ppg_g.fs
-            ecg_fs = sensor_data.ecg.fs
-            acc_fs = sensor_data.acc_x.fs
 
             full_signals = {
                 "ppg_ir" : sensor_data.ppg_ir.v,
@@ -49,12 +48,12 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
                 "ecg"    : None
             }
 
-            if hasattr(mat.ecg, 'v'):
-                full_signals['ecg'] = mat_file.ecg.v
+            if 'ecg' in mat_file and hasattr(mat_file["ecg"].v):
+                full_signals['ecg'] = mat_file['ecg'].v
 
             if preprocess:
                 for char in ['ppg_ir', 'ppg_r', 'ppg_g']:
-                    full_signals[char] = bandpass_filter(full_signals[char], fs)
+                    full_signals[char] = bandpass_filter(full_signals[char], ppg_fs)
                     
             num_samples = len(full_signals['ppg_ir'])
             window_samples = int(window_seconds*ppg_fs)
