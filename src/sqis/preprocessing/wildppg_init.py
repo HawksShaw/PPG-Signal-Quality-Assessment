@@ -12,9 +12,11 @@ def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
     return sosfiltfilt(sos, signal)
 
 def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, preprocess=True):
-    files_dir = os.path.join(data_dir, 'WildPPG_Part_*.mat')
+    files_dir = os.path.join(data_dir, 'WildPPG_Part_an*.mat')
     files = sorted(glob.glob(files_dir))
 
+    if not os.path.isdir(data_dir):
+        raise FileNotFoundError(f"No such directory as {data_dir}")
     if not files:
         raise FileNotFoundError(f"No files found in {data_dir}")
 
@@ -48,16 +50,41 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
             }
 
             if hasattr(mat.ecg, 'v'):
-                full_signals['ecg'] = sensor_data.ecg.v
+                full_signals['ecg'] = mat_file.ecg.v
 
             if preprocess:
                 for char in ['ppg_ir', 'ppg_r', 'ppg_g']:
                     full_signals[char] = bandpass_filter(full_signals[char], fs)
                     
             num_samples = len(full_signals['ppg_ir'])
+            window_samples = int(window_seconds*ppg_fs)
+            step_size = int(window_samples*(1-overlap))
 
-            
-            
+            for start in range(0, num_samples-window_samples+1, step_size):
+                end = start+window_samples
+                window_signal = {
+                    "metadata" : {
+                        "subject_id"    : subject_id,
+                        "sensor"        : sensor_location,
+                        "sampling_rate" : ppg_fs,
+                        "timestamp"     : start/ppg_fs
+                    },
+                    "ppg_signal" : {
+                        "ir" : full_signals["ppg_ir"][start:end],
+                        "r"  : full_signals["ppg_r"][start:end],
+                        "g"  : full_signals["ppg_g"][start:end]
+                    },
+                    "accel" : {
+                        "x" : full_signals['acc_x'][start:end],
+                        "y" : full_signals['acc_y'][start:end],
+                        "z" : full_signals['acc_z'][start:end]
+                    }
+                }
+
+                if full_signals["ecg"] is not None:
+                    window_signal["ecg"] = full_signals["ecg"][start:end]
+
+                yield window_signal
 
 
         
