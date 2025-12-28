@@ -1,50 +1,143 @@
-import pandas as pd
+import os
+import glob
+import numpy as np
 import requests
 import time
+from scipy.io import loadmat
+from scipy.signal import butter, sosfiltfilt
+import json
+import matplotlib.pyplot as plt
 
-# 1. Load your actual data
-CSV_PATH = "your_data_file.csv"  # Update this to your filename
-df = pd.read_csv(CSV_PATH)
+# --- 1. YOUR EXISTING PROCESSING CODE ---
+def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
+    nyquist_freq = 0.5*fs
+    lowpass = lowcut/nyquist_freq
+    highpass = highcut/nyquist_freq
+    sos = butter(order, [lowpass, highpass], btype='band', output='sos')
+    return sosfiltfilt(sos, signal)
 
-# 2. Define the API settings
+def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, preprocess=True):
+    # (Your exact code provided above)
+    files_dir = os.path.join(data_dir, 'WildPPG_Part_*.mat')
+    files = sorted(glob.glob(files_dir))
+
+    if not os.path.isdir(data_dir):
+        raise FileNotFoundError(f"No such directory as {data_dir}")
+    if not files:
+        raise FileNotFoundError(f"No files found in {data_dir}")
+
+    print(f"Found {len(files)} files. Starting data stream.")
+
+    for file_path in files:
+        subject_id = os.path.basename(file_path).split('.')[0]
+        try:
+            mat_file = loadmat(file_path, squeeze_me=True, struct_as_record=False)
+        except Exception as ex:
+            print(f"Skipping subject {subject_id}: {ex}")
+            continue
+
+        for sensor_location in sensors:
+            if sensor_location not in mat_file:
+                continue
+
+            sensor_data = mat_file[sensor_location]
+            ppg_fs = float(sensor_data.ppg_g.fs) # Ensure float
+
+            full_signals = {
+                "ppg_ir" : sensor_data.ppg_ir.v,
+                "ppg_r"  : sensor_data.ppg_r.v,
+                "ppg_g"  : sensor_data.ppg_g.v,
+                "acc_x"  : sensor_data.acc_x.v,
+                "acc_y"  : sensor_data.acc_y.v,
+                "acc_z"  : sensor_data.acc_z.v,
+            }
+
+            if preprocess:
+                for char in ['ppg_ir', 'ppg_r', 'ppg_g']:
+                    full_signals[char] = bandpass_filter(full_signals[char], ppg_fs)
+                    
+            num_samples = len(full_signals['ppg_ir'])
+            window_samples = int(window_seconds*ppg_fs)
+            step_size = int(window_samples*(1-overlap))
+
+            for start in range(0, num_samples-window_samples+1, step_size):
+                end = start+window_samples
+                
+                # Yield the exact dictionary structure your code produces
+                yield {
+                    "metadata" : {
+                        "subject_id"    : subject_id,
+                        "sensor"        : sensor_location,
+                        "sampling_rate" : ppg_fs,
+                        "timestamp"     : start/ppg_fs
+                    },
+                    "ppg_signal" : {
+                        "ir" : full_signals["ppg_ir"][start:end],
+                        "r"  : full_signals["ppg_r"][start:end],
+                        "g"  : full_signals["ppg_g"][start:end]
+                    },
+                    "accel" : {
+                        "x" : full_signals['acc_x'][start:end],
+                        "y" : full_signals['acc_y'][start:end],
+                        "z" : full_signals['acc_z'][start:end]
+                    }
+                }
+
+# --- 2. THE ADAPTER / FEEDER LOOP ---
+
+# CONFIGURATION
+# UPDATE THIS PATH to the folder containing your .mat files
+DATA_DIR = "./data/raw/" 
 API_URL = "http://127.0.0.1:8000/assess"
-FS = 25  # Your sampling rate
-WINDOW_SIZE = int(FS * 8)  # 8-second windows (200 samples)
 
-def feed_data():
-    # Iterate through the CSV in 8-second chunks
-    for start in range(0, len(df), WINDOW_SIZE):
-        end = start + WINDOW_SIZE
-        chunk = df.iloc[start:end]
-
-        # Ensure we have a full window to avoid the "Window too short" error
-        if len(chunk) < WINDOW_SIZE:
-            break
-
-        # 3. Format the data into the JSON structure your API expects
+def run_feeder():
+    print(f"Initializing stream from: {DATA_DIR}")
+    
+    # Create the generator
+    stream = wildppg_stream(DATA_DIR)
+    
+    count = 0
+    for window in stream:
+        count += 1
+        chosen_window = 3
+        plot_window = True
+        
+        # --- THE ADAPTER STEP ---
+        # Flatten the nested dictionary to match API 'SignalWindow' model
         payload = {
-            "subject_id": "subject_01",
-            "sampling_rate": float(FS),
-            "ppg_ir": chunk['ppg'].tolist(),  # Replace 'ppg' with your actual column name
-            "acc_x": chunk['acc_x'].tolist(),
-            "acc_y": chunk['acc_y'].tolist(),
-            "acc_z": chunk['acc_z'].tolist()
+            "subject_id": window['metadata']['subject_id'],
+            "sampling_rate": float(window['metadata']['sampling_rate']),
+            "ppg_ir": window['ppg_signal']['ir'].tolist(),
+            "acc_x": window['accel']['x'].tolist(),
+            "acc_y": window['accel']['y'].tolist(),
+            "acc_z": window['accel']['z'].tolist()
         }
 
-        # 4. POST the data to the API
+        if count == chosen_window:
+            print(json.dumps(payload))
+            plt.plot
+        # Send to API
         try:
             response = requests.post(API_URL, json=payload)
+            
             if response.status_code == 200:
                 result = response.json()
-                print(f"Window {start//WINDOW_SIZE}: Status: {result['status']}, Confidence: {result['confidence']:.2f}")
+                print(f"[Window {count}] Status: {result['status']} | Conf: {result['confidence']:.2f}, | Reason: {result['reasons']}")
             else:
-                print(f"Error: {response.status_code} - {response.text}")
-        except Exception as e:
-            print(f"Connection failed: {e}")
+                print(f"[Window {count}] Failed: {response.status_code} - {response.text}")
+
+        except requests.exceptions.ConnectionError:
+            print("ERROR: Could not connect to API. Is 'uvicorn' running?")
             break
-
-        # Optional: slow down the feeder to simulate real-time processing
-        time.sleep(1)
-
+        except Exception as e:
+            print(f"Error processing window: {e}")
+            break
+        
+        if count > 100:
+            break
+            
+        # Optional: slight delay to watch it run
+        # time.sleep(0.1)
+    print(response)
 if __name__ == "__main__":
-    feed_data()
+    run_feeder()

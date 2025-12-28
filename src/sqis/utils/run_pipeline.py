@@ -20,9 +20,9 @@ def run_pipeline(data_path):
 
     for i, window in enumerate(stream):
         try:
-            #!!! PLACEHOLDER !!!
-            print(f"Current iteration: {i}")
-            #!!! PLACEHOLDER !!!
+            # #!!! PLACEHOLDER !!!
+            # print(f"Current iteration: {i}")
+            # #!!! PLACEHOLDER !!!
 
             signal_ir = window['ppg_signal']['ir']
             signal_acc = window['accel']

@@ -43,11 +43,11 @@ class QualityChecker:
 
         return {
             "status": report.status.value,
-            "confidence": report.confidence,
+            "confidence": float(report.confidence),
             "reasons": report.reasons,
             "metrics": report.metrics,
             "metadata": {
-                "n_peaks": len(peaks),
-                "motion_detected": is_artifact
+                "n_peaks": int(len(peaks)),
+                "motion_detected": bool(is_artifact)
             }
         }
