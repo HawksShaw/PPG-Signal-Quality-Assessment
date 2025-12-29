@@ -103,7 +103,6 @@ def run_feeder():
         plot_window = True
         
         # --- THE ADAPTER STEP ---
-        # Flatten the nested dictionary to match API 'SignalWindow' model
         payload = {
             "subject_id": window['metadata']['subject_id'],
             "sampling_rate": float(window['metadata']['sampling_rate']),
@@ -113,9 +112,10 @@ def run_feeder():
             "acc_z": window['accel']['z'].tolist()
         }
 
-        if count == chosen_window:
-            print(json.dumps(payload))
-            plt.plot
+        # --- PRINT FOR POSTMAN VISUALIZATION ---
+        # if count == chosen_window: 
+        #     print(json.dumps(payload))
+        #     plt.plot
         # Send to API
         try:
             response = requests.post(API_URL, json=payload)
