@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from service.processor import QualityChecker
+from service.storage import save_assessment
 
 app = FastAPI(
     title="PPG Quality Assessment Service",
@@ -32,10 +33,6 @@ def health_check():
 
 @app.post("/assess", response_model=QualityResponse)
 def assess_signal_quality(window: SignalWindow):
-    """
-    Receives a raw 8-second window of PPG + IMU data.
-    Returns the Accept/Reject decision with detailed metrics.
-    """
     try:
         expected_len = int(window.sampling_rate * 8) 
         if len(window.ppg_ir) < expected_len * 0.9:
@@ -48,7 +45,23 @@ def assess_signal_quality(window: SignalWindow):
             acc_z=window.acc_z,
             fs=window.sampling_rate
         )
+
+        raw_data = {
+            "ppg_ir": window.ppg_ir,
+            "acc_x" : window.acc_x,
+            "acc_y" : window.acc_y,
+            "acc_z" : window.acc_z,
+            "fs"    : window.sampling_rate
+        }
+
+        record_id = save_assessment(
+            metadata = {"subject_id" : window.subject_id},
+            report = result,
+            raw_signals = raw_data
+        )
         
+        result["metadata"]["storage_id"] = record_id
+
         return result
 
     except Exception as e:
@@ -56,4 +69,4 @@ def assess_signal_quality(window: SignalWindow):
         print(f"Processing Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Note: In production, you run this using: uvicorn sqis.service.api:app --reload
+# Run this using: uvicorn sqis.service.api:app --reload
