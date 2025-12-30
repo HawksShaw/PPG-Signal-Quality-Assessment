@@ -2,6 +2,7 @@ import numpy as np
 
 def window_overlap(ppg_signal, fs, window_overlap=0.7, window_length=8):
 
+    # --- Added an overlap to windows for better artifact detection ---
     window_samples = int(fs*window_length)
     stride_samples = int(window_samples*(1-window_overlap))
 

@@ -4,6 +4,8 @@ import numpy as np
 from scipy.io import loadmat
 from scipy.signal import butter, sosfiltfilt
 
+# --- THIS ONLY WORKS FOR THE WILDPPG DATASET ---
+
 def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
     nyquist_freq = 0.5*fs
     lowpass = lowcut/nyquist_freq
@@ -12,6 +14,7 @@ def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
     return sosfiltfilt(sos, signal)
 
 def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, preprocess=True):
+    #Feed the entire directory and sort for reproducible executions
     files_dir = os.path.join(data_dir, 'WildPPG_Part_*.mat')
     files = sorted(glob.glob(files_dir))
 
@@ -23,9 +26,9 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
     print(f"Found {len(files)} files. Starting data stream.")
 
     for file_path in files:
-        subject_id = os.path.basename(file_path).split('.')[0]
+        subject_id = os.path.basename(file_path).split('.')[0] #Skip the .mat part for the subject's ID
         try:
-            mat_file = loadmat(file_path, squeeze_me=True, struct_as_record=False)
+            mat_file = loadmat(file_path, squeeze_me=True, struct_as_record=False) #Load individual files
         except Exception as ex:
             print(f"Skipping subject {subject_id}: {ex}")
             continue
@@ -61,6 +64,8 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
 
             for start in range(0, num_samples-window_samples+1, step_size):
                 end = start+window_samples
+                
+                #Create a dictionary for easier metadata access
                 window_signal = {
                     "metadata" : {
                         "subject_id"    : subject_id,
