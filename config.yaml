@@ -1,0 +1,18 @@
+app:
+  name: "PPG-Quality-Assessment"
+  environment: "development"
+  host: "127.0.0.1"
+  port: 8000
+
+processing:
+  default_fs: 25.0
+  window_seconds: 8
+  motion_threshold: 0.2
+
+storage:
+  database_url: "sqlite:///./quality_assessment.db"
+  object_store_directory: "./object_store"
+
+logging:
+  level: "INFO"
+  file: "service.log"

@@ -1,0 +1,12 @@
+.venv/
+venv/
+data/
+*.mat
+object_store/
+quality_assessment.db
+*.db
+.git/
+.gitignore
+.vscode/
+__pycache__/
+*.pyc

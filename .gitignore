@@ -215,6 +215,7 @@ wheels/
 data/
 notebooks/archive
 scripts/archive
+object_store
 
 # Virtual environments
 .venv

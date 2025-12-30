@@ -6,9 +6,7 @@ import time
 from scipy.io import loadmat
 from scipy.signal import butter, sosfiltfilt
 import json
-import matplotlib.pyplot as plt
 
-# --- 1. YOUR EXISTING PROCESSING CODE ---
 def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
     nyquist_freq = 0.5*fs
     lowpass = lowcut/nyquist_freq
@@ -17,7 +15,6 @@ def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
     return sosfiltfilt(sos, signal)
 
 def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, preprocess=True):
-    # (Your exact code provided above)
     files_dir = os.path.join(data_dir, 'WildPPG_Part_*.mat')
     files = sorted(glob.glob(files_dir))
 
@@ -41,7 +38,7 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
                 continue
 
             sensor_data = mat_file[sensor_location]
-            ppg_fs = float(sensor_data.ppg_g.fs) # Ensure float
+            ppg_fs = float(sensor_data.ppg_g.fs)
 
             full_signals = {
                 "ppg_ir" : sensor_data.ppg_ir.v,
@@ -63,7 +60,6 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
             for start in range(0, num_samples-window_samples+1, step_size):
                 end = start+window_samples
                 
-                # Yield the exact dictionary structure your code produces
                 yield {
                     "metadata" : {
                         "subject_id"    : subject_id,
@@ -83,17 +79,12 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
                     }
                 }
 
-# --- 2. THE ADAPTER / FEEDER LOOP ---
-
-# CONFIGURATION
-# UPDATE THIS PATH to the folder containing your .mat files
 DATA_DIR = "./data/raw/" 
 API_URL = "http://127.0.0.1:8000/assess"
 
 def run_feeder():
     print(f"Initializing stream from: {DATA_DIR}")
     
-    # Create the generator
     stream = wildppg_stream(DATA_DIR)
     
     count = 0
@@ -102,7 +93,6 @@ def run_feeder():
         chosen_window = 3
         plot_window = True
         
-        # --- THE ADAPTER STEP ---
         payload = {
             "subject_id": window['metadata']['subject_id'],
             "sampling_rate": float(window['metadata']['sampling_rate']),

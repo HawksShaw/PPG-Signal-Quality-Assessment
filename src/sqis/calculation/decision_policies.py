@@ -12,7 +12,7 @@ class QualityReport:
     status: SignalStatus
     confidence: float
     reasons: List[str] = field(default_factory=list)
-    metrics: Dict[str] = field(default_factory=dict)
+    metrics: Dict[str, any] = field(default_factory=dict)
 
 class Decision:
     def __init__(self):
