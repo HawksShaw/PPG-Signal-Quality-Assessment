@@ -49,6 +49,7 @@ def run_validation():
 
     all_features = ['snr', 'skewness', 'kurtosis', 'relative_power', 'zero_crossing_rate', 'motion_energy', 'average_jerk', 'max_magnitude']
     features = [col for col in all_features if col in df.columns]
+    print(f"Extracted features: {features}")
 
     if len(features) < 2:
         print("Not enough metric features for PCA validation.")
@@ -79,12 +80,10 @@ def run_validation():
     sns.scatterplot(
         x="PCA1", y="PCA2",
         hue='status',
-        style='status',
         palette={
-            'accept': 'green',
-            'reject': 'red',
-            'GOOD'  : 'green',
-            'BAD'   : 'red'
+            'GOOD'  : '#FFB8D9',
+            'BAD'   : '#470021',
+            'ACCEPTABLE' : '#A3004C'
         },
         data=df_clean,
         s=100,

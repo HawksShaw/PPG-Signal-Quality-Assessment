@@ -3,6 +3,7 @@ venv/
 data/
 *.mat
 object_store/
+object_store_segments/
 quality_assessment.db
 *.db
 .git/
@@ -10,3 +11,5 @@ quality_assessment.db
 .vscode/
 __pycache__/
 *.pyc
+*.npy
+*.log

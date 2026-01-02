@@ -216,6 +216,6 @@ data/
 notebooks/archive
 scripts/archive
 object_store
-
+object_store_segments
 # Virtual environments
 .venv
