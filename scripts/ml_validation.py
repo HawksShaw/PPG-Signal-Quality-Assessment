@@ -27,8 +27,9 @@ def load_data():
                 mtr['status'] = row['status']
                 mtr['confidence'] = row['confidence']
 
-                metrics_data.append(m)
+                metrics_data.append(mtr)
             except Exception as e:
+                print(f"Error found: {e}")
                 continue
 
         clean_df = pd.DataFrame(metrics_data)
@@ -46,15 +47,15 @@ def run_validation():
     if df.empty:
         return
 
-    all_features = ['snr', 'skewness', 'kurtosis', 'relative_power', 'zero_crossing_rate']
+    all_features = ['snr', 'skewness', 'kurtosis', 'relative_power', 'zero_crossing_rate', 'motion_energy', 'average_jerk', 'max_magnitude']
     features = [col for col in all_features if col in df.columns]
 
     if len(features) < 2:
-        print("Not enough metric featurs for PCA validation.")
+        print("Not enough metric features for PCA validation.")
         return
 
     df_clean = df.dropna(subset=features)
-    df_clean = df_clean[~df_clean[features].isin([np.nan, np.inf, -np.inf]).any(1)]
+    df_clean = df_clean[~df_clean[features].isin([np.nan, np.inf, -np.inf]).any(axis=1)]
 
     if df_clean.empty:
         print("All data contains NaN or Inf values.")
@@ -79,7 +80,12 @@ def run_validation():
         x="PCA1", y="PCA2",
         hue='status',
         style='status',
-        palette={'accept': 'green', 'reject': 'red'},
+        palette={
+            'accept': 'green',
+            'reject': 'red',
+            'GOOD'  : 'green',
+            'BAD'   : 'red'
+        },
         data=df_clean,
         s=100,
         alpha=0.7

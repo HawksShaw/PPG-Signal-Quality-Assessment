@@ -85,9 +85,10 @@ def run_batch_feeder():
     stream = wildppg_stream(DATA_DIR)
     
     buffer = []
-    
-    for window in stream:
+    batch_count = 0
 
+    for window in stream:
+        batch_count += 1
         flattenned_window = {
             "subject_id": window['metadata']['subject_id'],
             "sampling_rate": float(window['metadata']['sampling_rate']),
@@ -105,16 +106,20 @@ def run_batch_feeder():
             # Optional sleep
             #time.sleep(0.5)
             
+        # if batch_count >= 5000:
+        #     break
+
     if buffer:
         send_batch(buffer)
 
 def send_batch(window_list):
+    count = 0
     try:
         response = requests.post(API_URL, json=window_list)
         
         if response.status_code == 200:
             data = response.json()
-            count = data.get("processed_count", 0)
+            count = count + data.get("processed_count", 0)
             print(f"Batch Success! Processed {count} windows.")
         else:
             print(f"Batch Failed: {response.status_code} - {response.text}")

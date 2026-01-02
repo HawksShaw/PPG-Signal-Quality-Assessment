@@ -123,7 +123,7 @@ def run_feeder():
             print(f"Error processing window: {e}")
             break
         
-        if count > 100:
+        if count > 5000:
             break
             
     print(response)
