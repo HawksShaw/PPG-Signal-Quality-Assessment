@@ -1,11 +1,9 @@
 import os
 import glob
-import numpy as np
 import requests
-import time
+import numpy as np
 from scipy.io import loadmat
 from scipy.signal import butter, sosfiltfilt
-import json
 
 def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
     nyquist_freq = 0.5*fs

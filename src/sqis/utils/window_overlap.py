@@ -8,8 +8,8 @@ def window_overlap(ppg_signal, fs, window_overlap=0.7, window_length=8):
 
     if stride_samples <= 0:
         raise ValueError("Overlap too high - step size is 0.")
-    if len(signal) < window_samples:
-        print(f"Warning - signal length of {len(signal)} is shorter than the window length of {len(ppg_window)}")
+    if len(ppg_signal) < window_samples:
+        print(f"Warning - signal length of {len(ppp_signal)} is shorter than the window length of {len(ppg_window)}")
         return []
 
     windows = []

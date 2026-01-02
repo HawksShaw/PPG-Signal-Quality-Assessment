@@ -47,7 +47,7 @@ def run_validation():
     if df.empty:
         return
 
-    all_features = ['snr', 'skewness', 'kurtosis', 'relative_power', 'zero_crossing_rate', 'motion_energy', 'average_jerk', 'max_magnitude']
+    all_features = ['spectral_snr', 'skewness', 'kurtosis', 'relative_power', 'zero_crossing_rate', 'motion_energy', 'average_jerk', 'max_magnitude']
     features = [col for col in all_features if col in df.columns]
     print(f"Extracted features: {features}")
 
@@ -82,8 +82,8 @@ def run_validation():
         hue='status',
         palette={
             'GOOD'  : '#FFB8D9',
-            'BAD'   : '#470021',
-            'ACCEPTABLE' : '#A3004C'
+            'ACCEPTABLE' : '#A3004C',
+            'BAD'   : '#470021'
         },
         data=df_clean,
         s=100,
