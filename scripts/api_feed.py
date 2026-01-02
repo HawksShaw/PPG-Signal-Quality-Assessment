@@ -106,7 +106,7 @@ def run_feeder():
         # if count == chosen_window: 
         #     print(json.dumps(payload))
         #     plt.plot
-        # Send to API
+
         try:
             response = requests.post(API_URL, json=payload)
             
@@ -126,8 +126,6 @@ def run_feeder():
         if count > 100:
             break
             
-        # Optional: slight delay to watch it run
-        # time.sleep(0.1)
     print(response)
 if __name__ == "__main__":
     run_feeder()

@@ -23,6 +23,7 @@ class AssessmentRecord(base):
     status = Column(String)
     confidence = Column(Float)
     reasons = Column(String)
+    metrics = Column(String)
     file_path = Column(String)
 
 engine = create_engine(database_url, connect_args={"check_same_thread": False})
@@ -46,6 +47,7 @@ def save_assessment(metadata: dict, report: dict, raw_signals: dict):
             status = report["status"],
             confidence = report["confidence"],
             reasons = json.dumps(report["reasons"]),
+            metrics = json.dumps(report["metrics"]),
             file_path = file_path
         )
         db.add(record)

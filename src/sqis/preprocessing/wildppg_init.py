@@ -6,6 +6,12 @@ from scipy.signal import butter, sosfiltfilt
 
 # --- THIS ONLY WORKS FOR THE WILDPPG DATASET ---
 
+def z_score_normalize(signal):
+    if np.std(signal) <= 1e-6:
+        return signal
+    else:
+        return (signal-np.mean(signal))/np.std(signal)
+
 def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
     nyquist_freq = 0.5*fs
     lowpass = lowcut/nyquist_freq
@@ -65,6 +71,11 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
             for start in range(0, num_samples-window_samples+1, step_size):
                 end = start+window_samples
                 
+                norm_ir = z_score_normalize(full_signals["ppg_ir"][start:end])
+                norm_r  = z_score_normalize(full_signals["ppg_r"][start:end])
+                norm_g  = z_score_normalize(full_signals["ppg_g"][start:end])
+
+
                 #Create a dictionary for easier metadata access
                 window_signal = {
                     "metadata" : {
@@ -74,9 +85,9 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
                         "timestamp"     : start/ppg_fs
                     },
                     "ppg_signal" : {
-                        "ir" : full_signals["ppg_ir"][start:end],
-                        "r"  : full_signals["ppg_r"][start:end],
-                        "g"  : full_signals["ppg_g"][start:end]
+                        "ir" : norm_ir,
+                        "r"  : norm_r,
+                        "g"  : norm_g
                     },
                     "accel" : {
                         "x" : full_signals['acc_x'][start:end],
