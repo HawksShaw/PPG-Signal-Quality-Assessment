@@ -95,6 +95,7 @@ def run_validation():
     plt.ylabel("Principal Component 2")
     plt.grid(True)
     plt.legend()
+    plt.savefig('foo.png')
     plt.show()
 
 if __name__ == "__main__":

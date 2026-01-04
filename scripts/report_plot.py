@@ -66,15 +66,13 @@ def plot_threshold_guidelines(df, metric_name='motion_energy'):
     
     # Plot overlapping distributions
     sns.histplot(data=df, x=metric_name, hue='status', kde=True, bins=30, 
-                 palette={'accept': 'green', 'reject': 'red', 'GOOD': 'green', 'BAD': 'red'},
+                 palette={'GOOD': 'green', 'BAD': 'red', 'ACCEPTABLE' : 'orange'},
                  alpha=0.5)
 
     # Calculate suggested threshold (simple mean of means heuristic)
-    # A real 'optimal' threshold requires ROC curves, but this is sufficient for guidelines.
-    mean_accept = df[df['status'].isin(['accept', 'GOOD'])][metric_name].mean()
-    mean_reject = df[df['status'].isin(['reject', 'BAD'])][metric_name].mean()
+    mean_accept = df[df['status'].isin(['GOOD', 'ACCEPTABLE'])][metric_name].mean()
+    mean_reject = df[df['status'].isin(['BAD'])][metric_name].mean()
     
-    # Heuristic threshold: midpoint between the two peaks
     threshold_est = (mean_accept + mean_reject) / 2
     
     plt.axvline(threshold_est, color='black', linestyle='--', linewidth=2)
