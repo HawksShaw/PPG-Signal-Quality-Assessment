@@ -13,7 +13,7 @@ def signal_window(signal, window_start, window_length, fs):
 
 # --- USE THIS FOR DOCKER STREAMING --- 
 
-# # 1. STOP & CLEAN UP
+# 1. STOP & CLEAN UP
 # Write-Host "🛑 Cleaning up..."
 # docker stop ppg-assessment 2>$null
 # docker rm ppg-assessment 2>$null

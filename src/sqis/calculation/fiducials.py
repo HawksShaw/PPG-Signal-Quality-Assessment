@@ -1,4 +1,5 @@
 import numpy as np
+import heartpy as hp
 from scipy import signal
 from peaks_elgendi import peaks_elgendi
 
@@ -7,6 +8,16 @@ class getFiducials:
         self.fs = sampling_rate
         self.min_distance = int(0.27*self.fs)
 
+
+    def peaks_heartpy(self, signal_window):
+        try:
+            working_data, measures = hp.process(signal, sample_rate=fs, clean_rr=True)
+            peaks = np.array(working_data['peaklist'])
+            return peaks
+        except Exception as e:
+            print(f"Error while analyzing systolic peaks: {e}")
+            return np.array([])
+        
 
     def peaks_elgendi(self, signal_window):
         """
@@ -40,20 +51,29 @@ class getFiducials:
                 end_region = i
                 if end_region > start_region:
                     segment = signal_window[start_region:end_region]
-                    local_max_idx = np.argmax(segment)
+                    local_max_idx = np.argmax(segment) + start_region
+                    peaks.append(local_max_idx)
+
+        peaks = np.array(peaks)
+        if len(peaks) > 1:
+            kept_indices = []
+            last_peak = -self.min_distance
+
+            for peak in peaks:
+                if peak - last_peak > self.min_distance:
+                    kept_indices.append(peak)
+                    last_peak = peak
+                else:
+                    if signal_window[peak] > signal_window[kept_indices[-1]]:
+                        kept_indices[-1] = peak
+                        last_peak = peak
+        return peaks
 
     def extract_fiducials(self, ppg_window):
-        height_threshold = 0.6*self.peak_height
-        prominence_threshold = 0.3*self.prominence
-
-        peaks, props = signal.find_peaks(ppg_window, distance=self.min_distance, height=height_threshold, prominence=prominence_threshold)
-
-        if len(props['peak_heights']) > 0:
-            avg_height = np.mean(props['peak_heights'])
-            self.peak_height = 0.9*self.peak_height + 0.1*avg_height
-
-            avg_prominence = np.mean(props['prominences'])
-            self.prominence = 0.9*self.prominence + 0.1*avg_prominence
+        
+        # --- ADJUST COMMENTS WHEN NEEDED ---
+        peaks = self.peaks_elgendi(ppg_window)
+        #peaks = self.peaks_heartpy(ppg_window)
 
         notches, diastolic_peaks = self.find_diastoles(ppg_window, peaks)
         pulse_onsets = self.find_onsets(ppg_window, peaks)
@@ -64,8 +84,6 @@ class getFiducials:
             "diastolic_peaks" : diastolic_peaks,
             "notches" : np.array(notches),
             "pulse_onsets" : pulse_onsets,
-            "running_height" : self.peak_height,
-            "running_prominence": self.prominence
         }
 
     def find_diastoles(self, ppg_window, peaks):
