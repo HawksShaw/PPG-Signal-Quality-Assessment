@@ -65,20 +65,22 @@ def run_validation():
     x = df_clean[features].values
     x = StandardScaler().fit_transform(x)
 
-    pca = PCA(n_components=2)
+    pca = PCA(n_components=4)
     pc = pca.fit_transform(x)
 
     df_clean['PCA1'] = pc[:, 0]
     df_clean['PCA2'] = pc[:, 1]
+    df_clean['PCA3'] = pc[:, 2]
+    df_clean['PCA4'] = pc[:, 3]
 
     variance_ratio = pca.explained_variance_ratio_
     total_variance = sum(variance_ratio)*100
-    print(f"PCA Variance: {total_variance:.2f}% (PC1: {variance_ratio[0]:.2f}, PC2: {variance_ratio[1]:.2f})")
+    print(f"PCA Variance: {total_variance:.2f}% (PC1: {variance_ratio[1]:.2f}, PC2: {variance_ratio[2]:.2f})")
 
     plt.figure()
 
     sns.scatterplot(
-        x="PCA1", y="PCA2",
+        x="PCA1", y="PCA3",
         hue='status',
         palette={
             'GOOD'  : '#FFB8D9',
@@ -89,11 +91,20 @@ def run_validation():
         s=100,
         alpha=0.7
     )
+    loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
 
-    plt.title(f"Unsupervised validation for signal quality clusters")
+
+    features_to_show = ['spectral_snr', 'skewness', 'kurtosis', 'motion_energy', 'average_jerk', 'max_magnitude']
+
+    plt.grid(True, zorder=0)
+    for i, feature in enumerate(features):
+        if feature in features_to_show:
+            plt.arrow(0, 0, loadings[i, 0]*4, loadings[i, 2]*4, color='red', alpha=0.8, linewidth=2.0, head_width=0.3)
+            #plt.text(loadings[i, 0]*1.15, loadings[i, 1]*1.15, feature, color='red', ha='center', va='center')
+
+    plt.title(f"Unsupervised validation for signal quality clusters - Wrist InfraRed")
     plt.xlabel("Principal Component 1")
     plt.ylabel("Principal Component 2")
-    plt.grid(True)
     plt.legend()
     plt.savefig('foo.png')
     plt.show()

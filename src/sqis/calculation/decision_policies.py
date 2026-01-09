@@ -26,9 +26,9 @@ class Decision:
         }
 
         self.weights = {
-            "template_corr": 0.6,
+            "template_corr": 0.5,
             "snr"          : 0.3,
-            "skew"         : 0.1
+            "skew"         : 0.2
         }
 
     def decide(self, sqi_metrics: dict, motion_flagged: bool, num_peaks: int) -> QualityReport:

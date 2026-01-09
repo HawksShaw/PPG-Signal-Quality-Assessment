@@ -1,8 +1,9 @@
 import os
 import glob
-import numpy as np
-import requests
 import time
+import requests
+import numpy as np
+import pandas as pd
 from scipy.io import loadmat
 from scipy.signal import butter, sosfiltfilt
 
@@ -25,6 +26,7 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
         subject_id = os.path.basename(file_path).split('.')[0]
         try:
             mat_file = loadmat(file_path, squeeze_me=True, struct_as_record=False)
+            raw_ecg = mat_file['sternum'].ecg.v
         except Exception as ex:
             print(f"Skipping subject {subject_id}: {ex}")
             continue
@@ -32,7 +34,7 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
         for sensor_location in sensors:
             if sensor_location not in mat_file: 
                 continue
-            
+
             sensor_data = mat_file[sensor_location]
             ppg_fs = float(sensor_data.ppg_g.fs)
 
@@ -40,6 +42,7 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
                 "ppg_ir": sensor_data.ppg_ir.v,
                 "ppg_r": sensor_data.ppg_r.v,
                 "ppg_g": sensor_data.ppg_g.v,
+                "ecg"  : raw_ecg,
                 "acc_x": sensor_data.acc_x.v,
                 "acc_y": sensor_data.acc_y.v,
                 "acc_z": sensor_data.acc_z.v,
@@ -55,6 +58,11 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
 
             for start in range(0, num_samples-window_samples+1, step_size):
                 end = start+window_samples
+
+                ecg_slice = []
+                if len(full_signals["ecg"]) > end:
+                    ecg_slice = full_signals["ecg"][start:end]
+
                 yield {
                     "metadata" : {
                         "subject_id"    : subject_id,
@@ -65,7 +73,8 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
                     "ppg_signal" : {
                         "ir" : full_signals["ppg_ir"][start:end],
                         "r"  : full_signals["ppg_r"][start:end],
-                        "g"  : full_signals["ppg_g"][start:end]
+                        "g"  : full_signals["ppg_g"][start:end],
+                        "ecg_gt" : ecg_slice
                     },
                     "accel" : {
                         "x" : full_signals['acc_x'][start:end],
@@ -77,6 +86,7 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
 DATA_DIR = "./data/raw/" 
 API_URL = "http://127.0.0.1:8000/assess/batch"
 BATCH_SIZE = 5
+OUTPUT_FILENAME = "heartpy_results.csv"
 
 def run_batch_feeder():
     print(f"Initializing BATCH stream from: {DATA_DIR}")
@@ -86,14 +96,16 @@ def run_batch_feeder():
     
     buffer = []
     batch_count = 0
+    all_results = []
 
     for window in stream:
+        # time_start = time.time()
         batch_count += 1
         flattenned_window = {
             "subject_id": window['metadata']['subject_id'],
             "sampling_rate": float(window['metadata']['sampling_rate']),
-            # Crucial: Convert NumPy arrays to Lists for JSON
             "ppg_ir": window['ppg_signal']['ir'].tolist(),
+            "ecg_gt": window['ppg_signal']['ecg_gt'].tolist(),
             "acc_x": window['accel']['x'].tolist(),
             "acc_y": window['accel']['y'].tolist(),
             "acc_z": window['accel']['z'].tolist()
@@ -101,16 +113,42 @@ def run_batch_feeder():
         buffer.append(flattenned_window)
         
         if len(buffer) >= BATCH_SIZE:
-            send_batch(buffer)
+            batch_results = send_batch(buffer)
+            if batch_results:
+                all_results.extend(batch_results)
             buffer = [] 
             # Optional sleep
             #time.sleep(0.5)
-            
-        # if batch_count >= 5000:
+        # time_end = time.time()
+        # print(f"Elapsed batch computation time: {time_end-time_start:.4f} seconds")
+        # if batch_count >= 500:
         #     break
 
     if buffer:
-        send_batch(buffer)
+        batch_results = send_batch(buffer)
+        if batch_results:
+            all_results.extend(batch_results)
+
+    if all_results:
+        flat_data = []
+        for res in all_results:
+            row = {
+                "subject": res['metadata'].get('subject_id', 'unknown'),
+                "status": res['status'],
+                "confidence": res['confidence'],
+                "hr_error": res['metadata'].get('hr_error', 'Unknown'),
+                "gt_label": res['metadata'].get('gt_label', 'Unknown'),
+                "skewness": res['metrics'].get('skewness'),
+                "snr": res['metrics'].get('spectral_snr'),
+                "motion_detected": res['metadata'].get('motion_detected')
+            }
+            flat_data.append(row)
+
+        df = pd.DataFrame(flat_data)
+        df.to_csv(OUTPUT_FILENAME, index=False)
+        print(f"Saved results to: {OUTPUT_FILENAME}")
+    else:
+        print("No available results to save")
 
 def send_batch(window_list):
     count = 0
@@ -121,8 +159,10 @@ def send_batch(window_list):
             data = response.json()
             count = count + data.get("processed_count", 0)
             print(f"Batch Success! Processed {count} windows.")
+            return data.get("results", [])
         else:
             print(f"Batch Failed: {response.status_code} - {response.text}")
+            return []
             
     except Exception as e:
         print(f"Connection Error: {e}")

@@ -1,5 +1,6 @@
 import os
 import glob
+import time
 import requests
 import numpy as np
 from scipy.io import loadmat
@@ -42,6 +43,7 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
                 "ppg_ir" : sensor_data.ppg_ir.v,
                 "ppg_r"  : sensor_data.ppg_r.v,
                 "ppg_g"  : sensor_data.ppg_g.v,
+                # "ecg"    : sensor_data.ecg.v,
                 "acc_x"  : sensor_data.acc_x.v,
                 "acc_y"  : sensor_data.acc_y.v,
                 "acc_z"  : sensor_data.acc_z.v,
@@ -68,7 +70,8 @@ def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, p
                     "ppg_signal" : {
                         "ir" : full_signals["ppg_ir"][start:end],
                         "r"  : full_signals["ppg_r"][start:end],
-                        "g"  : full_signals["ppg_g"][start:end]
+                        "g"  : full_signals["ppg_g"][start:end],
+                        # "ecg_gt" : full_signals["ecg"][start:end]
                     },
                     "accel" : {
                         "x" : full_signals['acc_x'][start:end],
@@ -87,6 +90,7 @@ def run_feeder():
     
     count = 0
     for window in stream:
+        time_start = time.time()
         count += 1
         chosen_window = 3
         plot_window = True
@@ -121,9 +125,12 @@ def run_feeder():
             print(f"Error processing window: {e}")
             break
         
-        if count > 5000:
+        time_end = time.time()
+        print(f"Elapsed stream time: {time_end-time_start:.4f} seconds")
+
+        if count > 500:
             break
-            
+           
     print(response)
 if __name__ == "__main__":
     run_feeder()

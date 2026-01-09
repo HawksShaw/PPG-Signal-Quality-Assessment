@@ -17,6 +17,7 @@ class SignalWindow(BaseModel):
     subject_id: str
     sampling_rate: float
     ppg_ir: List[float]
+    ecg_gt: Optional[List[float]] = None
     acc_x: List[float]
     acc_y: List[float]
     acc_z: List[float]
@@ -49,7 +50,8 @@ def assess_signal_quality(window: SignalWindow):
             acc_x=window.acc_x,
             acc_y=window.acc_y,
             acc_z=window.acc_z,
-            fs=window.sampling_rate
+            fs=window.sampling_rate,
+            ecg_gt=window.ecg_gt
         )
 
         raw_data = {
@@ -57,7 +59,8 @@ def assess_signal_quality(window: SignalWindow):
             "acc_x" : window.acc_x,
             "acc_y" : window.acc_y,
             "acc_z" : window.acc_z,
-            "fs"    : window.sampling_rate
+            "fs"    : window.sampling_rate,
+            "ecg_gt" : window.ecg_gt
         }
 
         record_id = save_assessment(
@@ -90,7 +93,8 @@ def assess_batch_quality(windows: List[SignalWindow]):
                 acc_x = window.acc_x,
                 acc_y = window.acc_y,
                 acc_z = window.acc_z,
-                fs = window.sampling_rate
+                fs = window.sampling_rate,
+                ecg_gt = window.ecg_gt
             )
 
             raw_data = {
@@ -98,7 +102,8 @@ def assess_batch_quality(windows: List[SignalWindow]):
                 "acc_x"  : window.acc_x,
                 "acc_y"  : window.acc_y,
                 "acc_z"  : window.acc_z,
-                "fs"     : window.sampling_rate
+                "fs"     : window.sampling_rate,
+                "ecg_gt" : window.ecg_gt
             }
 
             record_id = save_assessment(

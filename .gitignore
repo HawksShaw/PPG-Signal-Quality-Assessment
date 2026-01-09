@@ -217,5 +217,12 @@ notebooks/archive
 scripts/archive
 object_store
 object_store_segments
+heartpy_results.csv
+ideal.csv
+elgendi_results.csv
+scipy_results.csv
+foo.png
+Figure_4_1_Environmental_Sensitivity.png
+sensitivity_plot.png
 # Virtual environments
 .venv

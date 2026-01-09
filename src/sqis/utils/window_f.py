@@ -10,11 +10,9 @@ def signal_window(signal, window_start, window_length, fs):
     return window_signal, window_time
 
 
-
 # --- USE THIS FOR DOCKER STREAMING --- 
 
 # 1. STOP & CLEAN UP
-# Write-Host "🛑 Cleaning up..."
 # docker stop ppg-assessment 2>$null
 # docker rm ppg-assessment 2>$null
 
@@ -27,15 +25,16 @@ def signal_window(signal, window_start, window_length, fs):
 # Remove-Item -Path .\quality_assessment.db -Force -ErrorAction SilentlyContinue
 
 # # 2. CREATE FRESH FILES
-# Write-Host "✨ Creating fresh environment..."
 # New-Item -Path . -Name "quality_assessment.db" -ItemType "file" | Out-Null
 # if (-not (Test-Path .\object_store_segments)) { 
 #     New-Item -Path . -Name "object_store_segments" -ItemType "directory" | Out-Null 
 # }
 
 # # 3. RUN WITH CORRECT MAPPING
-# Write-Host "🐳 Starting Service..."
-# docker run --name ppg-assessment -p 8000:8000 `
+# docker run --name ppg-assessment --rm -p 8000:8000 `
 #   -v ${PWD}/object_store_segments:/app/object_store `
 #   -v ${PWD}/quality_assessment.db:/app/quality_assessment.db `
+#   -v ${PWD}:/app `
 #   ppg-assessment
+
+# --- DOCKER BUILDING ---

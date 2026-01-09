@@ -6,6 +6,7 @@ from sqis.calculation.indices import SQIcalc
 from sqis.calculation.imu import IMUDetector
 from sqis.calculation.decision_policies import SignalStatus, Decision
 from sqis.preprocessing.wildppg_init import wildppg_stream
+import time
 
 def run_pipeline(data_path):
     stream = wildppg_stream(data_path, window_seconds=8, preprocess=True)
@@ -78,7 +79,8 @@ def run_pipeline(data_path):
             continue
 
     df = pd.DataFrame(results)
-    output_path = 'benchmark_results.csv'
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    output_path = 'benchmark_results_{timestamp}.csv'
     df.to_csv(output_path, index=False)
     print(f"Benchmark complete for {len(df)} windows. Saving results to {output_path}.")
     return df
