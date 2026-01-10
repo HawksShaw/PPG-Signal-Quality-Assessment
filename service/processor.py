@@ -3,6 +3,7 @@ from sqis.calculation.fiducials import getFiducials
 from sqis.calculation.indices import SQIcalc
 from sqis.calculation.decision_policies import Decision
 from sqis.calculation.imu import IMUDetector
+from sqis.calculation.hr_quality import hr_quality
 
 class QualityChecker:
     def __init__(self):
@@ -21,10 +22,9 @@ class QualityChecker:
         else:
             return (signal-np.mean(signal))/np.std(signal)
             
-    def window_processing(self, ppg_ir:list, acc_x:list, acc_y:list, acc_z:list, fs:float):
+    def window_processing(self, ppg_ir:list, acc_x:list, acc_y:list, acc_z:list, fs:float, ecg_gt:list=None):
         
         tools = self.get_indices(fs)
-
         signal_ir = self.z_score(np.array(ppg_ir))
 
         a_x = np.array(acc_x)
@@ -44,6 +44,16 @@ class QualityChecker:
         policy = Decision()
         report = policy.decide(sqi_metrics=sqi_metrics, motion_flagged=is_artifact, num_peaks=len(peaks))
 
+        gt_label = "Unknown"
+        hr_error = None
+
+        if ecg_gt is not None and len(ecg_gt) > 0 and len (peaks) > 1:
+            try:
+                ecg_arr = np.array(ecg_gt)
+                gt_label, hr_error = hr_quality(peaks, ecg_arr, fs)
+            except Exception as e:
+                print(f"ground-truth calculation failed: {e}")
+
         return {
             "status": report.status.value,
             "confidence": float(report.confidence),
@@ -51,6 +61,8 @@ class QualityChecker:
             "metrics": report.metrics,
             "metadata": {
                 "n_peaks": int(len(peaks)),
-                "motion_detected": bool(is_artifact)
+                "motion_detected": bool(is_artifact),
+                "gt_label" : gt_label,
+                "hr_error" : hr_error if hr_error is not None else "Unknown"
             }
         }

@@ -100,9 +100,9 @@ def run_validation():
     for i, feature in enumerate(features):
         if feature in features_to_show:
             plt.arrow(0, 0, loadings[i, 0]*4, loadings[i, 2]*4, color='red', alpha=0.8, linewidth=2.0, head_width=0.3)
-            #plt.text(loadings[i, 0]*1.15, loadings[i, 1]*1.15, feature, color='red', ha='center', va='center')
+            plt.text(loadings[i, 0]*1.15, loadings[i, 1]*1.15, feature, color='red', ha='center', va='center')
 
-    plt.title(f"Unsupervised validation for signal quality clusters - Wrist InfraRed")
+    plt.title(f"Unsupervised validation for signal quality clusters - Sternum Sensor")
     plt.xlabel("Principal Component 1")
     plt.ylabel("Principal Component 2")
     plt.legend()

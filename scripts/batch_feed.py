@@ -14,9 +14,11 @@ def bandpass_filter(signal, fs, lowcut=0.5, highcut=3.7, order=3):
     sos = butter(order, [lowpass, highpass], btype='band', output='sos')
     return sosfiltfilt(sos, signal)
 
-def wildppg_stream(data_dir, sensors=['wrist'], window_seconds=8, overlap=0.6, preprocess=True):
+def wildppg_stream(data_dir, sensors=['sternum'], window_seconds=8, overlap=0.6, preprocess=True):
     files_dir = os.path.join(data_dir, 'WildPPG_Part_*.mat')
     files = sorted(glob.glob(files_dir))
+    if sensors in files:
+        print(sensors)
     
     if not files:
         raise FileNotFoundError(f"No files found in {data_dir}.")
